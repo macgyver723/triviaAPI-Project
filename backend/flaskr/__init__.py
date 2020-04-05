@@ -12,8 +12,6 @@ def get_paginated(request, selection):
   page = request.args.get('page', 1, type=int)
   start = (page-1) * QUESTIONS_PER_PAGE
   end = start + QUESTIONS_PER_PAGE
-
-  print(f"start: {start} || end: {end}")
   questions = [q.format() for q in selection]
 
   return questions[start:end]
@@ -74,11 +72,23 @@ def create_app(test_config=None):
     })
 
   @app.route('/categories/<int:category_id>/questions')
-  def retrieve_questions_by_category(category_id):
-    page = request.args.get('page', 1, type=int)
-    
+  def retrieve_questions_by_category(category_id):    
     category = Category.query.filter(Category.id == category_id).one_or_none()
-    questions = Question.query.filter(Question.category == category.type).all()
+
+    if category is None:
+      abort(404)
+
+    all_questions = Question.query.all()
+    questions = [q for q in all_questions if q.category == category_id]
+    # questions = Question.query.filter(Question.category == category.type).all()
+    selected_questions = get_paginated(request, questions)
+
+    return jsonify( {
+      'success' : True,
+      'questions' : selected_questions,
+      'currentCategory' : category.type,
+      'totalQuestions' : len(all_questions)
+    })
     
   '''
   @TODO: 
