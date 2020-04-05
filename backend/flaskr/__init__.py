@@ -50,10 +50,7 @@ def create_app(test_config=None):
   '''
   @app.route('/questions')
   def retrieve_all_questions():
-    # page = request.args.get('page', 1, type=int)
     questions = Question.query.order_by(Question.category).all()
-    # start = QUESTIONS_PER_PAGE*(page-1)
-    # selected_questions = questions[start:start + QUESTIONS_PER_PAGE]
     selected_questions = get_paginated(request, questions)
 
     return jsonify({
@@ -72,22 +69,17 @@ def create_app(test_config=None):
     if category is None:
       abort(404)
 
-    all_questions = Question.query.all()
-    questions = [q for q in all_questions if q.category == category_id]
-    # questions = Question.query.filter(Question.category == category.type).all()
+    questions = Question.query.filter(Question.category == category_id).all()
     selected_questions = get_paginated(request, questions)
 
     return jsonify( {
       'success' : True,
       'questions' : selected_questions,
       'current_category' : category.type,
-      'total_questions' : len(all_questions)
+      'total_questions' : len(questions)
     })
     
   '''
-  @TODO: 
-  Create an endpoint to DELETE question using a question ID. 
-
   TEST: When you click the trash icon next to a question, the question will be removed.
   This removal will persist in the database and when you refresh the page. 
   '''
@@ -107,11 +99,6 @@ def create_app(test_config=None):
     })
 
   '''
-  @TODO: 
-  Create an endpoint to POST a new question, 
-  which will require the question and answer text, 
-  category, and difficulty score.
-
   TEST: When you submit a question on the "Add" tab, 
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.  
@@ -121,21 +108,38 @@ def create_app(test_config=None):
   def add_question():
     data = request.get_json()
 
-    try:
-      question = data.get('question')
-      category = data.get('category')
-      difficulty = data.get('difficulty')
-      answer = data.get('answer')
+    question = data.get('question', None)
+    category = data.get('category', None)
+    difficulty = data.get('difficulty', None)
+    answer = data.get('answer', None)
+    search = data.get('searchTerm', None)
 
-      new_question = Question(question, answer, category, difficulty)
-      new_question.insert()
+    try:
+      print(f"search is : {search}")
+      if search:
+        selection = Question.query.filter(Question.question.ilike('%{}%'.format(search))).all()
+        current_selection = get_paginated(request, selection)
+        print(f"current_selection[0]: {current_selection[0]}")
+      
+        return jsonify({
+          "success" : True,
+          "questions" : current_selection,
+          "total_questions" : len(selection),
+          "current_category" : current_selection[0]['category'],
+        })
+      
+      else:
+        new_question = Question(question, answer, category, difficulty)
+        new_question.insert()
+
+        return jsonify({
+          "success" : True
+        })
     
     except:
       abort(400)
     
-    return jsonify({
-      "success" : True
-    })
+   
 
   '''
   @TODO: 
