@@ -43,12 +43,6 @@ def create_app(test_config=None):
 
 
   '''
-  @TODO: 
-  Create an endpoint to handle GET requests for questions, 
-  including pagination (every 10 questions). 
-  This endpoint should return a list of questions, 
-  number of total questions, current category, categories. 
-
   TEST: At this point, when you start the application
   you should see questions and categories generated,
   ten questions per page and pagination at the bottom of the screen for three pages.
@@ -98,6 +92,20 @@ def create_app(test_config=None):
   This removal will persist in the database and when you refresh the page. 
   '''
 
+  @app.route('/questions/<int:question_id>', methods = ['DELETE'])
+  def delete_question(question_id):
+    question = Question.query.filter_by(question_id).one_or_none()
+
+    if question is None:
+      abort(404)
+    
+    question.delete()
+
+    return jsonify({
+      'success' : True,
+
+    })
+
   '''
   @TODO: 
   Create an endpoint to POST a new question, 
@@ -108,6 +116,26 @@ def create_app(test_config=None):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.  
   '''
+
+  @app.route('/questions', methods = ['POST'])
+  def add_question():
+    data = request.get_json()
+
+    try:
+      question = data.get('question')
+      category = data.get('category')
+      difficulty = data.get('difficulty')
+      answer = data.get('answer')
+
+      new_question = Question(question, answer, category, difficulty)
+      new_question.insert()
+    
+    except:
+      abort(400)
+    
+    return jsonify({
+      "success" : True
+    })
 
   '''
   @TODO: 
