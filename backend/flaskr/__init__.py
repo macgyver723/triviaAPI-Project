@@ -8,6 +8,16 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+def get_paginated(request, selection):
+  page = request.args.get('page', 1, type=int)
+  start = (page-1) * QUESTIONS_PER_PAGE
+  end = start + QUESTIONS_PER_PAGE
+
+  print(f"start: {start} || end: {end}")
+  questions = [q.format() for q in selection]
+
+  return questions[start:end]
+
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
@@ -48,18 +58,28 @@ def create_app(test_config=None):
   '''
   @app.route('/questions')
   def retrieve_all_questions():
-    page = request.args.get('page', 1, type=int)
+    # page = request.args.get('page', 1, type=int)
     questions = Question.query.order_by(Question.category).all()
-    start = QUESTIONS_PER_PAGE*(page-1)
-    selected_questions = questions[start:start + QUESTIONS_PER_PAGE]
+    # start = QUESTIONS_PER_PAGE*(page-1)
+    # selected_questions = questions[start:start + QUESTIONS_PER_PAGE]
+    selected_questions = get_paginated(request, questions)
 
     return jsonify({
       'success' : True,
-      'questions' : [q.format() for q in selected_questions],
+      'questions' : selected_questions,
       'totalQuestions' : len(questions),
       'categories' : [c.format() for c in Category.query.order_by(Category.type).all()],
-      'currentCategory' : 'all'
+      'currentCategory' : 'all',
+      'questions_displayed' : len(selected_questions)
     })
+
+  @app.route('/categories/<int:category_id>/questions')
+  def retrieve_questions_by_category(category_id):
+    page = request.args.get('page', 1, type=int)
+    
+    category = Category.query.filter(Category.id == category_id).one_or_none()
+    questions = Question.query.filter(Question.category == category.type).all()
+    
   '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
