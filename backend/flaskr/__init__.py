@@ -38,7 +38,7 @@ def create_app(test_config=None):
     
     return jsonify({
       'success' : True,
-      'categories' : [c.format() for c in categories]
+      'categories' : {c.id : c.type for c in categories}
     })
 
 
@@ -59,9 +59,9 @@ def create_app(test_config=None):
     return jsonify({
       'success' : True,
       'questions' : selected_questions,
-      'totalQuestions' : len(questions),
-      'categories' : [c.format() for c in Category.query.order_by(Category.type).all()],
-      'currentCategory' : 'all',
+      'total_questions' : len(questions),
+      'categories' : {c.id : c.type for c in Category.query.order_by(Category.type).all()},
+      'current_category' : 'all',
       'questions_displayed' : len(selected_questions)
     })
 
@@ -80,8 +80,8 @@ def create_app(test_config=None):
     return jsonify( {
       'success' : True,
       'questions' : selected_questions,
-      'currentCategory' : category.type,
-      'totalQuestions' : len(all_questions)
+      'current_category' : category.type,
+      'total_questions' : len(all_questions)
     })
     
   '''
@@ -94,7 +94,7 @@ def create_app(test_config=None):
 
   @app.route('/questions/<int:question_id>', methods = ['DELETE'])
   def delete_question(question_id):
-    question = Question.query.filter_by(question_id).one_or_none()
+    question = Question.query.filter_by(id=question_id).one_or_none()
 
     if question is None:
       abort(404)
