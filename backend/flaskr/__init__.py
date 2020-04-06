@@ -140,28 +140,6 @@ def create_app(test_config=None):
       abort(400)
     
    
-
-  '''
-  @TODO: 
-  Create a POST endpoint to get questions based on a search term. 
-  It should return any questions for whom the search term 
-  is a substring of the question. 
-
-  TEST: Search by any phrase. The questions list will update to include 
-  only question that include that string within their question. 
-  Try using the word "title" to start. 
-  '''
-
-  '''
-  @TODO: 
-  Create a GET endpoint to get questions based on category. 
-
-  TEST: In the "List" tab / main screen, clicking on one of the 
-  categories in the left column will cause only questions of that 
-  category to be shown. 
-  '''
-
-
   '''
   @TODO: 
   Create a POST endpoint to get questions to play the quiz. 
@@ -173,6 +151,43 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  @app.route('/quizzes', methods=['POST'])
+  def play_quiz():
+    data = request.get_json()
+    quiz_category = data.get('quiz_category')
+    previous_questions = data.get('previous_questions')
+    print(f"\n\tprevious_questions: {previous_questions}")
+    questions = Question.query.filter(Question.category == quiz_category['id']).all()
+    print(f"\tAll questions: {questions}")
+    
+
+    ### maybe try to make this loop more efficient somehow?
+
+    removed = False
+    for q in questions[:]:
+      print(f"\t\tChecking if {q.id} is in {previous_questions}")
+      if q.id in previous_questions:
+        questions.remove(q)
+        print(f"\tremoved <Question {q.id}>")
+        removed = True
+    
+    
+    if removed:
+      print(f"\tquestions after remove loop: {questions}")
+    
+    if questions:
+      question = random.choice(questions).format()
+      print(f"\trandom question chosen: <Question {question['id']}>")
+
+      previous_questions.append(int(question['id']))
+    else: 
+      question = False
+
+    return jsonify({
+      "success" : True,
+      "question" : question,
+      "previousQuestions" : previous_questions
+    })
 
   '''
   @TODO: 
