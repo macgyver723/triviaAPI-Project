@@ -139,46 +139,26 @@ def create_app(test_config=None):
     except:
       abort(400)
     
-   
-  '''
-  @TODO: 
-  Create a POST endpoint to get questions to play the quiz. 
-  This endpoint should take category and previous question parameters 
-  and return a random questions within the given category, 
-  if provided, and that is not one of the previous questions. 
-
-  TEST: In the "Play" tab, after a user selects "All" or a category,
-  one question at a time is displayed, the user is allowed to answer
-  and shown whether they were correct or not. 
-  '''
   @app.route('/quizzes', methods=['POST'])
   def play_quiz():
     data = request.get_json()
     quiz_category = data.get('quiz_category')
     previous_questions = data.get('previous_questions')
-    print(f"\n\tprevious_questions: {previous_questions}")
-    questions = Question.query.filter(Question.category == quiz_category['id']).all()
-    print(f"\tAll questions: {questions}")
-    
 
-    ### maybe try to make this loop more efficient somehow?
-
-    removed = False
-    for q in questions[:]:
-      print(f"\t\tChecking if {q.id} is in {previous_questions}")
-      if q.id in previous_questions:
-        questions.remove(q)
-        print(f"\tremoved <Question {q.id}>")
-        removed = True
+    if quiz_category['id'] == 0:
+      questions = Question.query.all()
+    else:
+      questions = Question.query.filter(Question.category == quiz_category['id']).all()
     
-    
-    if removed:
-      print(f"\tquestions after remove loop: {questions}")
+    i = 0
+    while i < len(questions):
+      if questions[i].id in previous_questions:
+        questions.remove(questions[i])
+      else:
+        i += 1
     
     if questions:
       question = random.choice(questions).format()
-      print(f"\trandom question chosen: <Question {question['id']}>")
-
       previous_questions.append(int(question['id']))
     else: 
       question = False
