@@ -46,6 +46,9 @@ def create_app(test_config=None):
     questions = Question.query.order_by(Question.category).all()
     selected_questions = get_paginated(request, questions)
 
+    if len(selected_questions) == 0:
+      abort(404)
+
     return jsonify({
       'success' : True,
       'questions' : selected_questions,
