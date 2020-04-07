@@ -41,13 +41,6 @@ def create_app(test_config=None):
       'categories' : {c.id : c.type for c in categories}
     })
 
-
-  '''
-  TEST: At this point, when you start the application
-  you should see questions and categories generated,
-  ten questions per page and pagination at the bottom of the screen for three pages.
-  Clicking on the page numbers should update the questions. 
-  '''
   @app.route('/questions')
   def retrieve_all_questions():
     questions = Question.query.order_by(Question.category).all()
@@ -78,11 +71,6 @@ def create_app(test_config=None):
       'current_category' : category.type,
       'total_questions' : len(questions)
     })
-    
-  '''
-  TEST: When you click the trash icon next to a question, the question will be removed.
-  This removal will persist in the database and when you refresh the page. 
-  '''
 
   @app.route('/questions/<int:question_id>', methods = ['DELETE'])
   def delete_question(question_id):
@@ -97,12 +85,6 @@ def create_app(test_config=None):
       'success' : True,
 
     })
-
-  '''
-  TEST: When you submit a question on the "Add" tab, 
-  the form will clear and the question will appear at the end of the last page
-  of the questions list in the "List" tab.  
-  '''
 
   @app.route('/questions', methods = ['POST'])
   def add_question():
@@ -174,6 +156,37 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
+  @app.errorhandler(404)
+  def not_found(error):
+    return jsonify({
+      "success" : False,
+      "error" : 404,
+      "message" : "Not Found"
+    }), 404
+  
+  @app.errorhandler(422)
+  def unprocessable_entity(error):
+    return jsonify({
+      "success" : False,
+      "error" : 422,
+      "message" : "Unprocessable Entity"
+    }), 422
+
+  @app.errorhandler(405)
+  def method_not_allowed(error):
+    return jsonify({
+      "success" : False,
+      "error" : 405,
+      "message" : "Not Allowed"
+    }), 405
+
+  @app.errorhandler(400)
+  def bad_request(error):
+    return jsonify({
+      "success" : False,
+      "error" : 400,
+      "message" : "Bad Request"
+    }), 400
   
   return app
 
