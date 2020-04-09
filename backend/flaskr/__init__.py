@@ -81,16 +81,16 @@ def create_app(test_config=None):
 
     if question is None:
       abort(404)
-    
+  
     question.delete()
 
     return jsonify({
       'success' : True,
-
+      'deleted_question' : question_id
     })
 
   @app.route('/questions', methods = ['POST'])
-  def add_question():
+  def post_to_questions():
     data = request.get_json()
 
     question = data.get('question', None)
@@ -100,17 +100,14 @@ def create_app(test_config=None):
     search = data.get('searchTerm', None)
 
     try:
-      print(f"search is : {search}")
       if search:
         selection = Question.query.filter(Question.question.ilike('%{}%'.format(search))).all()
         current_selection = get_paginated(request, selection)
-        print(f"current_selection[0]: {current_selection[0]}")
       
         return jsonify({
           "success" : True,
           "questions" : current_selection,
           "total_questions" : len(selection),
-          "current_category" : current_selection[0]['category'],
         })
       
       else:
@@ -118,7 +115,8 @@ def create_app(test_config=None):
         new_question.insert()
 
         return jsonify({
-          "success" : True
+          "success" : True,
+          "new_question_id" : new_question.id
         })
     
     except:
@@ -151,14 +149,8 @@ def create_app(test_config=None):
     return jsonify({
       "success" : True,
       "question" : question,
-      "previousQuestions" : previous_questions
     })
 
-  '''
-  @TODO: 
-  Create error handlers for all expected errors 
-  including 404 and 422. 
-  '''
   @app.errorhandler(404)
   def not_found(error):
     return jsonify({
